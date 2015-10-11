@@ -9,16 +9,21 @@ def align_order(order):
 def prefix_match(prefix, matchers):
 	return [match for match in matchers if match.startswith(prefix)]
 
+def fuzzy_match(answer, matchers):
+	wordmatcher = '.*' + ''.join([singlechar + '.*' for singlechar in answer])
+	regex = '^' + wordmatcher + '$'
+	return [match for match in matchers if re.search(regex, match, re.IGNORECASE)]
+
 def instruct(text):
 	print align_order("INSTRUCT ACTION: ") + text
 
-def ask(question, answers = []):
+def ask(question, answers = [], empty_is_allowed = False):
 	answer = False
 	premsg = "REQUEST ANSWER: "
 	while (answer not in answers):
 		print align_order(premsg) + question +((" ["+'/'.join(answers)+"]") if answers else '') + ":"
 		answer = raw_input(align_order(''))
-		if not answers:
+		if not answers or (empty_is_allowed and not answer):
 			break
 		completions = prefix_match(answer, answers)
 		if len(completions) == 1 and completions[0] != answer:
@@ -42,6 +47,26 @@ def number_of_batteries():
 	return number_of_batteries.counter
 number_of_batteries.counter = False
 
+def get_serial():
+	if not get_serial.number:
+		get_serial.number = ask("What is the serial number?")
+	return get_serial.number
+get_serial.number = ''
+
+def serial(fn):
+	return fn(get_serial())
+
+def is_last_digit(fn):
+	def executor(serialnumber):
+		digits = re.findall('\d', serialnumber)
+		return fn(int(digits[-1])) if digits else False
+	return executor
+
+def odd(number):
+	return number % 2 == 1
+def even(number):
+	return not odd(number)
+
 
 ##############################
 ##### MANUAL VERSION 241 #####
@@ -64,6 +89,10 @@ class DefusalShell241(cmd.Cmd):
 	def do_exit(self, arg):
 		"Quit defusing bombs."
 		return True
+
+	def do_serial(self, serial):
+		"Enter complete serial."
+		serial()
 
 	def do_batteries(self, number):
 		"Set the number of batteries on the bomb."
@@ -127,6 +156,64 @@ class DefusalShell241(cmd.Cmd):
 			tell("Password is " + matches[0].upper())
 		else:
 			tell("Mistyped something, try again.")
+
+	def do_complicated_wires(self, arg):
+		"Defuse complicated wires... what else."
+
+		while True:
+			led = confirm("LED on?")
+			colors = []
+			while '' not in colors:
+				color = ask("Color of wire? (enter seperately or nothing)", ['red', 'blue', 'white'], True)
+				colors.append(color)
+			colors = set(colors[:-1])
+			tell("Okay, wire is " + '-'.join(colors) + '.')
+			star = confirm("Star present?")
+
+			red = 'red' in colors
+			blue = 'blue' in colors
+
+			lookup = { #Red, Blue, Star, LED
+				(0,0,0,0): 'C',
+				(0,0,0,1): 'D',
+				(0,0,1,0): 'C',
+				(0,0,1,1): 'B',
+				(0,1,0,0): 'S',
+				(0,1,0,1): 'P',
+				(0,1,1,0): 'D',
+				(0,1,1,1): 'P',
+				(1,0,0,0): 'S',
+				(1,0,0,1): 'B',
+				(1,0,1,0): 'C',
+				(1,0,1,1): 'B',
+				(1,1,0,0): 'S',
+				(1,1,0,1): 'S',
+				(1,1,1,0): 'P',
+				(1,1,1,1): 'D'
+			}
+
+			instruction = lookup[(int(red), int(blue), int(star), int(led))]
+
+			def cut():
+				instruct("Cut the wire!")
+			def nocut():
+				instruct("Do nothing! (do NOT cut the wire)")
+
+			if instruction == 'C':
+				cut()
+			elif instruction == 'D':
+				nocut()
+			elif instruction == 'S':
+				cut() if serial(is_last_digit(even)) else nocut()
+			elif instruction == 'P':
+				cut() if confirm("Has parallel port?") else nocut() #TODO save parallel port answer
+			elif instruction == 'B':
+				cut() if number_of_batteries() >= 2 else nocut()
+
+			if not confirm("\nOne more wire?"):
+				break
+			print ''
+
 
 if __name__ == '__main__':
 	try:
