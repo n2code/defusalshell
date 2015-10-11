@@ -20,13 +20,14 @@ def ask(question, answers = []):
 	answer = False
 	premsg = "REQUEST ANSWER: "
 	while (answer not in answers):
-		print align_order(premsg) + question + " ["+'/'.join(answers)+"]:"
+		print align_order(premsg) + question +((" ["+'/'.join(answers)+"]") if answers else '') + ":"
 		answer = raw_input(align_order(''))
 		if not answers:
 			break
 		autocomplete = prefix_match(answer, answers)
 		if len(autocomplete) == 1:
 			answer = autocomplete[0]
+			print align_order('') + answer
 		premsg = ''
 	return answer
 
@@ -40,7 +41,7 @@ def number_of_batteries():
 	if (number_of_batteries.counter == False):
 		try:
 			number_of_batteries.counter = int(ask("Number of batteries?"))
-		except:
+		except ValueError:
 			number_of_batteries.counter = number_of_batteries()
 	return number_of_batteries.counter
 number_of_batteries.counter = False
@@ -50,7 +51,7 @@ number_of_batteries.counter = False
 ##### MANUAL VERSION 241 #####
 ##############################
 class DefusalShell241(cmd.Cmd):
-	intro = "Welcome to the Keep-Talking-and-Nobody-Explodes-DefusalShell"
+	intro = "Welcome to the Keep-Talking-and-Nobody-Explodes-DefusalShell!\nRemember to restart for each game.\n"
 	prompt = "Manual#241> "
 	
 	def precmd(self, line):
@@ -60,6 +61,9 @@ class DefusalShell241(cmd.Cmd):
 	def postcmd(self, stop, line):
 		print ''
 		return stop
+
+	def emptyline(self):
+		pass
 
 	def do_exit(self, arg):
 		"Quit defusing bombs."
@@ -106,4 +110,7 @@ class DefusalShell241(cmd.Cmd):
 
 
 if __name__ == '__main__':
-	DefusalShell241().cmdloop()
+	try:
+		DefusalShell241().cmdloop()
+	except KeyboardInterrupt:
+		pass
