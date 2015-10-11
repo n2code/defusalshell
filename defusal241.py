@@ -8,95 +8,17 @@ try:
 except NameError:
 	intake = input
 
-### Helper functions
-
-def align_order(order):
-	return order.rjust(20) + "   "
-
-def prefix_match(prefix, matchers):
-	return [match for match in matchers if match.startswith(prefix)]
-
-def fuzzy_match(answer, matchers):
-	wordmatcher = '.*' + ''.join([singlechar + '.*' for singlechar in answer])
-	regex = '^' + wordmatcher + '$'
-	return [match for match in matchers if re.search(regex, match, re.IGNORECASE)]
-
-def instruct(text):
-	print(align_order("INSTRUCT ACTION: ") + text)
-
-def ask(question, answers = [], empty_is_allowed = False):
-	answer = False
-	premsg = "REQUEST ANSWER: "
-	while (answer not in answers):
-		print(align_order(premsg) + question +((" ["+'/'.join(answers)+"]") if answers else '') + ":")
-		answer = intake(align_order(''))
-		if not answers or (empty_is_allowed and not answer):
-			break
-		completions = prefix_match(answer, answers)
-		if len(completions) == 1 and completions[0] != answer:
-			answer = completions[0]
-			print(align_order('') + answer)
-		premsg = ''
-	return answer
-
-def confirm(question):
-	return (ask(question, ['y','n']) == 'y')
-
-def tell(text):
-	print(align_order("TELL INFO: ") + text)
-
-def number_of_batteries():
-	if (number_of_batteries.counter == False):
-		try:
-			number_of_batteries.counter = int(ask("Number of batteries?"))
-		except ValueError:
-			number_of_batteries.counter = number_of_batteries()
-	return number_of_batteries.counter
-number_of_batteries.counter = False
-
-def get_serial():
-	if not get_serial.number:
-		get_serial.number = ask("What is the serial number?")
-	return get_serial.number
-get_serial.number = ''
-
-def serial(fn):
-	return fn(get_serial())
-
-def is_last_digit(fn):
-	def executor(serialnumber):
-		digits = re.findall('\d', serialnumber)
-		return fn(int(digits[-1])) if digits else False
-	return executor
-
-def odd(number):
-	return number % 2 == 1
-def even(number):
-	return not odd(number)
-
+execfile("data_helpers.py")
+execfile("display_helpers.py")
+execfile("mechanics.py")
+execfile("baseshell.py")
 
 ##############################
 ##### MANUAL VERSION 241 #####
 ##############################
-class DefusalShell241(cmd.Cmd):
-	intro = "Welcome to the Keep-Talking-and-Nobody-Explodes-DefusalShell!\nRemember to restart for each game.\n"
+class DefusalShell241(DefusalShell):
 	prompt = "Manual#241> "
 	
-	def precmd(self, line):
-		print('')
-		return line
-
-	def postcmd(self, stop, line):
-		print('')
-		return stop
-
-	def emptyline(self):
-		pass
-
-	def do_exit(self, arg):
-		"Quit defusing bombs."
-		return True
-
 	def do_serial(self, serial):
 		"Enter complete serial."
 		serial()
@@ -217,9 +139,62 @@ class DefusalShell241(cmd.Cmd):
 			elif instruction == 'B':
 				cut() if number_of_batteries() >= 2 else nocut()
 
-			if not confirm("\nOne more wire?"):
+			print('')
+			if not confirm("One more wire?"):
 				break
 			print('')
+
+	def do_morse(self, arg):
+		"Decode morse code. Beeeep beep."
+
+		morse = {
+			'.-': 'a',
+			'-...': 'b',
+			'-.-.': 'c',
+			'-..': 'd',
+			'.': 'e',
+			'..-.': 'f',
+			'--.': 'g',
+			'....': 'h',
+			'..': 'i',
+			'.---': 'j',
+			'-.-': 'k',
+			'.-..': 'l',
+			'--': 'm',
+			'-.': 'n',
+			'---': 'o',
+			'.--.': 'p',
+			'--.-': 'q',
+			'.-.': 'r',
+			'...': 's',
+			'-': 't',
+			'..-': 'u',
+			'...-': 'v',
+			'.--': 'w',
+			'-..-': 'x',
+			'-.--': 'y',
+			'--..': 'z'
+		}
+		words = {
+			'shell': '3.505',
+			'halls': '3.515',
+			'slick': '3.522',
+			'trick': '3.532',
+			'boxes': '3.535',
+			'leaks': '3.542',
+			'strobe':'3.545',
+			'bistro':'3.552',
+			'flick': '3.555',
+			'bombs': '3.565',
+			'break': '3.572',
+			'brick': '3.575',
+			'steak': '3.582',
+			'sting': '3.592',
+			'vector':'3.595',
+			'beats': '3.600'
+		}
+
+		print("Not yet implemented.") #TODO
 
 
 if __name__ == '__main__':
