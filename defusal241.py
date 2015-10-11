@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import cmd
+import cmd, re
 
 ### Helper functions
 
@@ -7,11 +7,7 @@ def align_order(order):
 	return order.rjust(20) + "   "
 
 def prefix_match(prefix, matchers):
-	result = []
-	for matcher in matchers:
-		if matcher.startswith(prefix):
-			result.append(matcher)
-	return result
+	return [match for match in matchers if match.startswith(prefix)]
 
 def instruct(text):
 	print align_order("INSTRUCT ACTION: ") + text
@@ -24,9 +20,9 @@ def ask(question, answers = []):
 		answer = raw_input(align_order(''))
 		if not answers:
 			break
-		autocomplete = prefix_match(answer, answers)
-		if len(autocomplete) == 1:
-			answer = autocomplete[0]
+		completions = prefix_match(answer, answers)
+		if len(completions) == 1 and completions[0] != answer:
+			answer = completions[0]
 			print align_order('') + answer
 		premsg = ''
 	return answer
@@ -108,6 +104,29 @@ class DefusalShell241(cmd.Cmd):
 		else:
 			timedRelease()
 
+	def do_password(self, arg):
+		"Guess the 5-letter password."
+		words = "about after again below could every first found great house large learn never other place plant point right small sound spell still study their there these thing think three water where which world would write".split(' ')
+
+		def regex_match(chargroups, words):
+			wordmatcher = ''.join(['['+chargroup+']' for chargroup in chargroups])
+			regex = '^' + wordmatcher + '$'
+			return [word for word in words if re.search(regex, word, re.IGNORECASE)]
+
+		mystery = ['a-z'] * 5
+		chars = ''
+		matches = words
+		charpos = 1
+		while len(matches) > 1 and charpos <= 5:
+			chars = ask("Which letters for position " + str(charpos) + "?")
+			mystery[charpos-1] = chars
+			matches = regex_match(mystery, words)
+			charpos += 1
+
+		if len(matches) == 1:
+			tell("Password is " + matches[0].upper())
+		else:
+			tell("Mistyped something, try again.")
 
 if __name__ == '__main__':
 	try:
