@@ -6,6 +6,13 @@ import cmd
 def align_order(order):
 	return order.rjust(20) + "   "
 
+def prefix_match(prefix, matchers):
+	result = []
+	for matcher in matchers:
+		if matcher.startswith(prefix):
+			result.append(matcher)
+	return result
+
 def instruct(text):
 	print align_order("INSTRUCT ACTION: ") + text
 
@@ -17,6 +24,9 @@ def ask(question, answers = []):
 		answer = raw_input(align_order(''))
 		if not answers:
 			break
+		autocomplete = prefix_match(answer, answers)
+		if len(autocomplete) == 1:
+			answer = autocomplete[0]
 		premsg = ''
 	return answer
 
