@@ -1,5 +1,12 @@
 #!/usr/bin/env python
+from __future__ import print_function
+
 import cmd, re
+
+try:
+	intake = raw_input
+except NameError:
+	intake = input
 
 ### Helper functions
 
@@ -15,20 +22,20 @@ def fuzzy_match(answer, matchers):
 	return [match for match in matchers if re.search(regex, match, re.IGNORECASE)]
 
 def instruct(text):
-	print align_order("INSTRUCT ACTION: ") + text
+	print(align_order("INSTRUCT ACTION: ") + text)
 
 def ask(question, answers = [], empty_is_allowed = False):
 	answer = False
 	premsg = "REQUEST ANSWER: "
 	while (answer not in answers):
-		print align_order(premsg) + question +((" ["+'/'.join(answers)+"]") if answers else '') + ":"
-		answer = raw_input(align_order(''))
+		print(align_order(premsg) + question +((" ["+'/'.join(answers)+"]") if answers else '') + ":")
+		answer = intake(align_order(''))
 		if not answers or (empty_is_allowed and not answer):
 			break
 		completions = prefix_match(answer, answers)
 		if len(completions) == 1 and completions[0] != answer:
 			answer = completions[0]
-			print align_order('') + answer
+			print(align_order('') + answer)
 		premsg = ''
 	return answer
 
@@ -36,7 +43,7 @@ def confirm(question):
 	return (ask(question, ['y','n']) == 'y')
 
 def tell(text):
-	print align_order("TELL INFO: ") + text
+	print(align_order("TELL INFO: ") + text)
 
 def number_of_batteries():
 	if (number_of_batteries.counter == False):
@@ -76,11 +83,11 @@ class DefusalShell241(cmd.Cmd):
 	prompt = "Manual#241> "
 	
 	def precmd(self, line):
-		print ''
+		print('')
 		return line
 
 	def postcmd(self, stop, line):
-		print ''
+		print('')
 		return stop
 
 	def emptyline(self):
@@ -212,7 +219,7 @@ class DefusalShell241(cmd.Cmd):
 
 			if not confirm("\nOne more wire?"):
 				break
-			print ''
+			print('')
 
 
 if __name__ == '__main__':
