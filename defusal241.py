@@ -129,7 +129,7 @@ class DefusalShell241(DefusalShell):
 			elif instruction == 'S':
 				cut() if serial(is_last_digit(even)) else nocut()
 			elif instruction == 'P':
-				cut() if confirm("Has parallel port?") else nocut() #TODO save parallel port answer
+				cut() if has_parallel_port() else nocut()
 			elif instruction == 'B':
 				cut() if number_of_batteries() >= 2 else nocut()
 
@@ -203,7 +203,11 @@ class DefusalShell241(DefusalShell):
 			matches = match(morse_stream, by_contains(stream))
 
 		if len(matches) == 1:
-			instruct("Detected! Respond frequency is " + morse_stream[matches[0]] + " Mhz.")
+			detected = matches[0]
+			stream_end = detected.index(stream) + len(stream)
+			next_morse_letter = detected[stream_end:stream_end + detected[stream_end:].index(' ')]
+			tell("Detected! Next incoming sequence should be: " + next_morse_letter)
+			instruct("Respond frequency is " + morse_stream[detected] + " Mhz.")
 		else:
 			tell("Input error, try again.")
 

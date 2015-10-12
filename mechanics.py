@@ -25,3 +25,9 @@ def is_last_digit(fn):
 		digits = re.findall('\d', serialnumber)
 		return fn(int(digits[-1])) if digits else False
 	return executor
+
+def has_parallel_port():
+	if has_parallel_port.value == None:
+		has_parallel_port.value = confirm("Bomb has parallel port?")
+	return has_parallel_port.value
+has_parallel_port.value = None
