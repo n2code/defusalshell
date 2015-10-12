@@ -8,6 +8,11 @@ def by_prefix(prefix):
 		return match.startswith(prefix)
 	return has_prefix
 
+def by_contains(partial):
+	def contains(full):
+		return partial in full
+	return contains
+
 def by_fuzzy(search):
 	def fuzzy_check(match):
 		wordmatcher = '.*' + ''.join([singlechar + '.*' for singlechar in search])

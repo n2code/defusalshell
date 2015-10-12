@@ -82,7 +82,7 @@ class DefusalShell241(DefusalShell):
 			charpos += 1
 
 		if len(matches) == 1:
-			tell("Password is " + matches[0].upper())
+			instruct("Password is " + matches[0].upper())
 		else:
 			tell("Mistyped something, try again.")
 
@@ -193,8 +193,25 @@ class DefusalShell241(DefusalShell):
 			'vector':'3.595',
 			'beats': '3.600'
 		}
+		alphabet = {letter: code for code, letter in morse.items()}
 
-		print("Not yet implemented.") #TODO
+		def morse_of(word):
+			morse_word = [alphabet[char] for char in word]
+			return ' '.join(morse_word)
+
+		morse_stream = {(morse_of(word) + ' ') * 3: freq for word, freq in words.items()}
+
+		stream = ''
+		matches = morse_stream
+		tell("Enter morse code, use the keys . and -")
+		while len(matches) > 1:
+			stream += ask("Enter next letter") + ' '
+			matches = match(morse_stream, by_contains(stream))
+
+		if len(matches) == 1:
+			instruct("Detected! Respond frequency is " + morse_stream[matches[0]] + " Mhz.")
+		else:
+			tell("Input error, try again.")
 
 
 if __name__ == '__main__':
