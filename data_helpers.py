@@ -1,4 +1,5 @@
 ### Data helpers
+import re
 
 def match(matchers, condition):
 	return [match for match in matchers if condition(match)]

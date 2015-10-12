@@ -1,4 +1,10 @@
 ### Display helpers
+from data_helpers import *
+
+try:
+	intake = raw_input
+except NameError:
+	intake = input
 
 def align_order(order):
 	return order.rjust(20) + "   "

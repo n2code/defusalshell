@@ -1,4 +1,6 @@
 ### Game related
+import re
+from display_helpers import *
 
 def number_of_batteries():
 	if (number_of_batteries.counter == False):

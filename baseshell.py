@@ -1,3 +1,5 @@
+import cmd
+
 class DefusalShell(cmd.Cmd):
 	intro = "Welcome to the Keep-Talking-and-Nobody-Explodes-DefusalShell!\nRemember to restart for each game.\n"
 

@@ -1,17 +1,10 @@
 #!/usr/bin/env python
 from __future__ import print_function
 
-import cmd, re
-
-try:
-	intake = raw_input
-except NameError:
-	intake = input
-
-execfile("data_helpers.py")
-execfile("display_helpers.py")
-execfile("mechanics.py")
-execfile("baseshell.py")
+from baseshell import *
+from display_helpers import *
+from data_helpers import *
+from mechanics import *
 
 ##############################
 ##### MANUAL VERSION 241 #####
@@ -64,6 +57,7 @@ class DefusalShell241(DefusalShell):
 
 	def do_password(self, arg):
 		"Guess the 5-letter password."
+		import re
 		words = "about after again below could every first found great house large learn never other place plant point right small sound spell still study their there these thing think three water where which world would write".split(' ')
 
 		def regex_match(chargroups, words):
