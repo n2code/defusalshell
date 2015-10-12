@@ -6,6 +6,8 @@ from display_helpers import *
 from data_helpers import *
 from mechanics import *
 
+import re
+
 ##############################
 ##### MANUAL VERSION 241 #####
 ##############################
@@ -57,7 +59,6 @@ class DefusalShell241(DefusalShell):
 
 	def do_password(self, arg):
 		"Guess the 5-letter password."
-		import re
 		words = "about after again below could every first found great house large learn never other place plant point right small sound spell still study their there these thing think three water where which world would write".split(' ')
 
 		def regex_match(chargroups, words):
@@ -210,6 +211,69 @@ class DefusalShell241(DefusalShell):
 			instruct("Respond frequency is " + morse_stream[detected] + " Mhz.")
 		else:
 			tell("Input error, try again.")
+
+	def do_memory(self, arg):
+		config = ''
+		while re.match('^\d{4}$', config) is None:
+			config = ask("Button labels from left to right? (e.g. 1342)")
+
+		buttons = [(pos + 1, config[pos]) for pos in range(4)] #(position, label)
+		stage = 1
+		pressed = {} #stage: (position, label)
+
+		def button_in_position((pos, lab)): #returns label
+			return [label for (position, label) in buttons if position == pos][0]
+
+		def button_with_label((position, label)): #returns label
+			return label
+
+		def as_pressed_in_stage(stage): #returns (position, label)
+			return pressed[stage]
+
+		def number(position): #returns (position, dummy)
+			return (position, '0')
+
+		def press(label):
+			instruct("Press label " + label)
+			pressed[stage] = [(pos, lab) for (pos, lab) in buttons if lab == label][0]
+
+		while stage <= 5:
+			tell("STAGE " + ['ONE', 'TWO', 'THREE', 'FOUR', 'FIVE'][stage - 1])
+			display = ask("Display shows...?", ['1', '2', '3', '4', 'x'])
+			if display == 'x':
+				tell("Cancelling memory.")
+				return
+			display = int(display)
+
+			if stage == 1:
+				if display == 1: press(button_in_position(number(2)))
+				if display == 2: press(button_in_position(number(2)))
+				if display == 3: press(button_in_position(number(3)))
+				if display == 4: press(button_in_position(number(4)))
+			if stage == 2:
+				if display == 1: press(4)
+				if display == 2: press(button_in_position(as_pressed_in_stage(1)))
+				if display == 3: press(button_in_position(number(1)))
+				if display == 4: press(button_in_position(as_pressed_in_stage(1)))
+			if stage == 3:
+				if display == 1: press(button_with_label(as_pressed_in_stage(2)))
+				if display == 2: press(button_with_label(as_pressed_in_stage(1)))
+				if display == 3: press(button_in_position(number(3)))
+				if display == 4: press(4)
+			if stage == 4:
+				if display == 1: press(button_in_position(as_pressed_in_stage(1)))
+				if display == 2: press(button_in_position(number(1)))
+				if display == 3: press(button_in_position(as_pressed_in_stage(2)))
+				if display == 4: press(button_in_position(as_pressed_in_stage(2)))
+			if stage == 5:
+				if display == 1: press(button_with_label(as_pressed_in_stage(1)))
+				if display == 2: press(button_with_label(as_pressed_in_stage(2)))
+				if display == 3: press(button_with_label(as_pressed_in_stage(4)))
+				if display == 4: press(button_with_label(as_pressed_in_stage(3)))
+
+			stage += 1
+
+		tell("Memory solved!")
 
 
 if __name__ == '__main__':
