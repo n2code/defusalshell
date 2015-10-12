@@ -14,18 +14,6 @@ import re
 class DefusalShell241(DefusalShell):
 	prompt = "Manual#241> "
 	
-	def do_serial(self, serial):
-		"Enter complete serial."
-		serial()
-
-	def do_batteries(self, number):
-		"Set the number of batteries on the bomb."
-		try:
-			number_of_batteries.counter = int(number)
-		except:
-			number_of_batteries.counter = number_of_batteries()
-		tell("Okay, bomb has " + str(number_of_batteries()) + " batteries.")
-
 	def do_button(self, arg):
 		"Defuse the big button."
 		button_colors = ['blue','white','yellow','red','other']
@@ -213,6 +201,8 @@ class DefusalShell241(DefusalShell):
 			tell("Input error, try again.")
 
 	def do_memory(self, arg):
+		"Play memory. Coding this was no fun, I'm telling you."
+
 		config = ''
 		while re.match('^\d{4}$', config) is None:
 			config = ask("Button labels from left to right? (e.g. 1342)")
