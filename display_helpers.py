@@ -9,6 +9,9 @@ except NameError:
 def align_order(order):
 	return order.rjust(17) + "  "
 
+def output(text):
+	print(align_order('') + text)
+
 def instruct(text):
 	print(align_order("INSTRUCT ACTION: ") + text)
 
@@ -16,14 +19,17 @@ def ask(question, answers = [], empty_is_allowed = False):
 	answer = False
 	premsg = "REQUEST ANSWER: "
 	while (answer not in answers):
-		print(align_order(premsg) + question +((" ["+'/'.join(answers)+"]") if answers else '') + ":")
-		answer = intake(align_order(''))
+		prompt = align_order(premsg) + question
+		if answers:
+			allowed = "["+'/'.join(answers)+"]"
+			prompt += '\n' + align_order('') + allowed
+		answer = intake(prompt + ": ")
 		if not answers or (empty_is_allowed and not answer):
 			break
 		completions = match(answers, by_prefix(answer))
 		if len(completions) == 1 and completions[0] != answer:
 			answer = completions[0]
-			print(align_order('') + answer)
+			output("~~> ".rjust(len(allowed) + len(": ")) + answer)
 		premsg = ''
 	return answer
 

@@ -12,7 +12,7 @@ import re
 ##### MANUAL VERSION 241 #####
 ##############################
 class DefusalShell241(DefusalShell):
-	prompt = "Manual#241> "
+	prompt = "\nManual#241> "
 	
 	def do_button(self, arg):
 		"Defuse the big button."
@@ -54,31 +54,39 @@ class DefusalShell241(DefusalShell):
 			regex = '^' + wordmatcher + '$'
 			return [word for word in words if re.search(regex, word, re.IGNORECASE)]
 
-		mystery = ['a-z'] * 5
-		chars = ''
-		matches = words
-		charpos = 1
-		while len(matches) > 1 and charpos <= 5:
-			chars = ask("Which letters for position " + str(charpos) + "?")
-			mystery[charpos-1] = chars
-			matches = regex_match(mystery, words)
-			charpos += 1
+		while True:
+			mystery = ['a-z'] * 5
+			chars = ''
+			matches = words
+			charpos = 1
+			while len(matches) > 1 and charpos <= 5:
+				chars = ask("Which letters for position " + str(charpos) + "?")
+				mystery[charpos-1] = chars
+				matches = regex_match(mystery, words)
+				charpos += 1
 
-		if len(matches) == 1:
-			instruct("Password is " + matches[0].upper())
-		else:
-			tell("Mistyped something, try again.")
+			if len(matches) == 1:
+				instruct("Password is " + matches[0].upper())
+				return
+			else:
+				tell("Mistyped something, try again.\n")
+				output("==== RESTARTING ====\n")
 
 	def do_complicated_wires(self, arg):
 		"Defuse complicated wires... what else."
 
-		while True:
+		wires_left = 6
+		while wires_left > 0:
 			led = confirm("LED on?")
 			colors = []
-			while '' not in colors:
-				color = ask("Color of wire? (enter seperately or nothing)", ['red', 'blue', 'white'], True)
-				colors.append(color)
-			colors = set(colors[:-1])
+			question = "Color of wire?"
+			while True:
+				color = ask(question, ['red', 'blue', 'white'], True)
+				if color and color not in colors:
+					colors.append(color)
+					question = "More colors? (leave blank to accept)"
+				if color == '' and len(colors) > 0:
+					break
 			tell("Okay, wire is " + '-'.join(colors) + '.')
 			star = confirm("Star present?")
 
@@ -122,10 +130,10 @@ class DefusalShell241(DefusalShell):
 			elif instruction == 'B':
 				cut() if number_of_batteries() >= 2 else nocut()
 
-			print('')
-			if not confirm("One more wire?"):
-				break
-			print('')
+			wires_left -= 1
+			if wires_left:
+				output('')
+				output("===== Next wire =====\n")
 
 	def do_morse(self, arg):
 		"Decode morse code. Beeeep beep."
@@ -184,30 +192,28 @@ class DefusalShell241(DefusalShell):
 
 		morse_stream = {(morse_of(word) + ' ') * 3: freq for word, freq in words.items()}
 
-		stream = ''
-		matches = morse_stream
-		tell("Enter morse code, use the keys . and -")
-		while len(matches) > 1:
-			stream += ask("Enter next letter") + ' '
-			matches = match(morse_stream, by_contains(stream))
+		while True:
+			stream = ''
+			matches = morse_stream
+			tell("Enter morse code, use the keys . and -")
+			while len(matches) > 1:
+				stream += ask("Enter next letter") + ' '
+				matches = match(morse_stream, by_contains(stream))
 
-		if len(matches) == 1:
-			detected = matches[0]
-			stream_end = detected.index(stream) + len(stream)
-			next_morse_letter = detected[stream_end:stream_end + detected[stream_end:].index(' ')]
-			tell("Detected! Next incoming sequence should be: " + next_morse_letter)
-			instruct("Respond frequency is " + morse_stream[detected] + " Mhz.")
-		else:
-			tell("Input error, try again.")
+			if len(matches) == 1:
+				detected = matches[0]
+				stream_end = detected.index(stream) + len(stream)
+				next_morse_letter = detected[stream_end:stream_end + detected[stream_end:].index(' ')]
+				tell("Detected! Next incoming sequence should be: " + next_morse_letter)
+				instruct("Respond frequency is " + morse_stream[detected] + " Mhz.")
+				return
+			else:
+				tell("Input error, try again.\n")
+				output("==== RESTARTING ====\n")
 
 	def do_memory(self, arg):
 		"Play memory. Coding this was no fun, I'm telling you."
 
-		config = ''
-		while re.match('^\d{4}$', config) is None:
-			config = ask("Button labels from left to right? (e.g. 1342)")
-
-		buttons = [(pos + 1, config[pos]) for pos in range(4)] #(position, label)
 		stage = 1
 		pressed = {} #stage: (position, label)
 
@@ -228,12 +234,14 @@ class DefusalShell241(DefusalShell):
 			pressed[stage] = [(pos, lab) for (pos, lab) in buttons if lab == label][0]
 
 		while stage <= 5:
-			tell("STAGE " + ['ONE', 'TWO', 'THREE', 'FOUR', 'FIVE'][stage - 1])
-			display = ask("Display shows...?", ['1', '2', '3', '4', 'x'])
-			if display == 'x':
-				tell("Cancelling memory.")
-				return
-			display = int(display)
+			output("===== STAGE " + ['ONE', 'TWO', 'THREE', 'FOUR', 'FIVE'][stage - 1] + "=====")
+
+			config = ''
+			while re.match('^\d{4}$', config) is None or not ('1' in config and '2' in config and '3' in config and '4' in config):
+				config = ask("Button labels from left to right? (e.g. 1342)")
+			buttons = [(pos + 1, config[pos]) for pos in range(4)] #(position, label)
+
+			display = int(ask("Display shows...?", ['1', '2', '3', '4']))
 
 			if stage == 1:
 				if display == 1: press(button_in_position(number(2)))
@@ -241,7 +249,7 @@ class DefusalShell241(DefusalShell):
 				if display == 3: press(button_in_position(number(3)))
 				if display == 4: press(button_in_position(number(4)))
 			if stage == 2:
-				if display == 1: press(4)
+				if display == 1: press('4')
 				if display == 2: press(button_in_position(as_pressed_in_stage(1)))
 				if display == 3: press(button_in_position(number(1)))
 				if display == 4: press(button_in_position(as_pressed_in_stage(1)))
@@ -249,7 +257,7 @@ class DefusalShell241(DefusalShell):
 				if display == 1: press(button_with_label(as_pressed_in_stage(2)))
 				if display == 2: press(button_with_label(as_pressed_in_stage(1)))
 				if display == 3: press(button_in_position(number(3)))
-				if display == 4: press(4)
+				if display == 4: press('4')
 			if stage == 4:
 				if display == 1: press(button_in_position(as_pressed_in_stage(1)))
 				if display == 2: press(button_in_position(number(1)))
